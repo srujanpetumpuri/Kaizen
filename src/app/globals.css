@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #fbe3a6;
+  --paper: #fff6df;
+  --raise: #fbe0a0;
+  --ink: #2b1411;
+  --sub: #6b4a40;
+  --line: #2b1411;
+  --cta: #c8323b;
+  --on-cta: #fff6df;
+  --cta-hover: #a82730;
+  --sun: #f6c453;
+  --blush: #f4878a;
+  --maroon: #7a1d24;
+}
+
+[data-theme="dark"] {
+  --bg: #240d10;
+  --paper: #3a1519;
+  --raise: #4b1d22;
+  --ink: #fff1cf;
+  --sub: #e0bfa0;
+  --line: #f6c453;
+  --cta: #f6c453;
+  --on-cta: #240d10;
+  --cta-hover: #ffd67a;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-paper: var(--paper);
+  --color-raise: var(--raise);
+  --color-ink: var(--ink);
+  --color-sub: var(--sub);
+  --color-line: var(--line);
+  --color-cta: var(--cta);
+  --color-on-cta: var(--on-cta);
+  --color-cta-hover: var(--cta-hover);
+  --color-sun: var(--sun);
+  --color-blush: var(--blush);
+  --color-maroon: var(--maroon);
+
+  --font-head: var(--font-bricolage), system-ui, sans-serif;
+  --font-body: var(--font-manrope), system-ui, sans-serif;
+
+  --shadow-sticker: 5px 5px 0 var(--line);
+  --shadow-sticker-lg: 8px 8px 0 var(--line);
+  --radius-sticker: 28px;
+}
+
+body {
+  color: var(--ink);
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--blush) 55%, transparent), transparent 36%),
+    radial-gradient(circle at 0% 65%, color-mix(in srgb, var(--blush) 30%, transparent), transparent 34%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
