@@ -37,7 +37,6 @@ export const focusSessions = pgTable(
     }),
     durationMinutes: integer("duration_minutes").notNull(),
     completedAt: timestamp("completed_at").notNull().defaultNow(),
-    // Local calendar day (YYYY-MM-DD), sent by the client
     date: text("date").notNull(),
   },
   (t) => [index("focus_sessions_user_date_idx").on(t.userId, t.date)],
