@@ -13,6 +13,19 @@
   --sun: #f6c453;
   --blush: #f4878a;
   --maroon: #7a1d24;
+
+  /* supporting tokens used by the workout planner */
+  --edge: rgba(43, 20, 17, 0.22);
+  --rule: rgba(43, 20, 17, 0.35);
+  --warn: #b3261e;
+  --ok: #1f8a4c;
+  --ok-ink: #ffffff;
+  --scrim: rgba(43, 20, 17, 0.55);
+  --shadow-lg: 8px 8px 0 #2b1411;
+
+  --font-head: var(--font-bricolage), system-ui, sans-serif;
+  --font-body: var(--font-manrope), system-ui, sans-serif;
+  color-scheme: light;
 }
 
 [data-theme="dark"] {
@@ -25,6 +38,15 @@
   --cta: #f6c453;
   --on-cta: #240d10;
   --cta-hover: #ffd67a;
+
+  --edge: rgba(255, 241, 207, 0.18);
+  --rule: rgba(255, 241, 207, 0.3);
+  --warn: #ff9a8a;
+  --ok: #8fcf6b;
+  --ok-ink: #0d1a06;
+  --scrim: rgba(20, 6, 8, 0.78);
+  --shadow-lg: 8px 8px 0 #f6c453;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -57,6 +79,22 @@ body {
     radial-gradient(circle at 0% 65%, color-mix(in srgb, var(--blush) 30%, transparent), transparent 34%),
     var(--bg);
   background-attachment: fixed;
+}
+
+[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(200, 50, 59, 0.35), transparent 40%),
+    radial-gradient(circle at 0% 70%, rgba(122, 29, 36, 0.5), transparent 38%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* keep anchored sections clear of the sticky header */
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
 
 h1, h2, h3 {

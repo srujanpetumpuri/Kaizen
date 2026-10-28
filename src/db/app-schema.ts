@@ -64,13 +64,17 @@ export const workoutEntries = pgTable(
     date: text("date").notNull(),
     // Built-in category key (e.g. "run"), used when no custom type is set
     category: text("category"),
+    // Exactly one of category / typeId is set. Deleting a custom type also
+    // removes the planned workouts that use it.
     typeId: uuid("type_id").references(() => workoutTypes.id, {
-      onDelete: "set null",
+      onDelete: "cascade",
     }),
-    title: text("title").notNull(),
+    // null = show the icon's name
+    title: text("title"),
     notes: text("notes"),
-    startMinutes: integer("start_minutes").notNull().default(0),
-    durationMinutes: integer("duration_minutes").notNull().default(30),
+    // Minutes from midnight; null = planned for the day with no set time
+    startMinutes: integer("start_minutes"),
+    durationMinutes: integer("duration_minutes").notNull().default(60),
     completed: boolean("completed").notNull().default(false),
     // Shared by all entries generated from one repeat rule
     seriesId: text("series_id"),
