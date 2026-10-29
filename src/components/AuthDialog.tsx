@@ -32,7 +32,7 @@ export default function AuthDialog({ onDone }: { onDone?: () => void }) {
       onSubmit={submit}
       className="w-full max-w-sm space-y-3 rounded-[28px] border-2 border-[var(--line)] bg-[var(--paper)] p-6 shadow-[5px_5px_0_var(--line)]"
     >
-      <h2 className="font-[family-name:var(--font-heading)] text-2xl">
+      <h2 className="font-head text-2xl">
         {mode === "in" ? "Welcome back" : "Create account"}
       </h2>
       {mode === "up" && (
@@ -43,7 +43,7 @@ export default function AuthDialog({ onDone }: { onDone?: () => void }) {
       {error && <p className="text-sm text-[var(--cta)]">{error}</p>}
       <button
         disabled={busy}
-        className="w-full rounded-full border-2 border-[var(--line)] bg-[var(--cta)] py-2.5 font-semibold text-white shadow-[3px_3px_0_var(--line)] hover:bg-[var(--cta-hover)] disabled:opacity-60"
+        className="w-full rounded-full border-2 border-[var(--line)] bg-[var(--cta)] py-2.5 font-semibold text-[var(--on-cta)] shadow-[3px_3px_0_var(--line)] hover:bg-[var(--cta-hover)] disabled:opacity-60"
       >
         {busy ? "…" : mode === "in" ? "Sign in" : "Sign up"}
       </button>
