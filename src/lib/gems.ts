@@ -17,7 +17,7 @@ export const GEMS: readonly Gem[] = [
   { cycles: 2, name: "Amethyst", src: "/Amethyst_Purple.png", color: "#8e5bd6" },
   { cycles: 3, name: "Amber", src: "/Amber_Orange.png", color: "#f0902c" },
   { cycles: 4, name: "Obsidian", src: "/Obsidian_black.png", color: "#1b1b24" },
-  { cycles: 5, name: "Crystal cluster", src: "/Cystal_cluster_blue.png", color: "#4a86e8" },
+  { cycles: 5, name: "Crystal cluster", src: "/Crystal_cluster_blue.png", color: "#4a86e8" },
 ];
 
 // full cycles in a day's worth of completed focus rounds (leftover rounds don't count yet)
