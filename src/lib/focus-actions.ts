@@ -1,17 +1,18 @@
 "use server";
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { focusSessions, topics } from "@/db/schema";
 import { getSession } from "@/lib/session";
+import { FOCUS_MINUTES } from "@/lib/gems";
+import { TOPIC_COLORS } from "@/lib/topic-colors";
 
 export type Topic = { id: string; name: string; color: string };
 export type TopicStat = { topicId: string | null; name: string; color: string; minutes: number; sessions: number };
+export type DaySessions = { date: string; sessions: number };
 export type TodayStats = { totalMinutes: number; sessions: number; byTopic: TopicStat[] };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-// Sunrise palette, handed out in turn so each new topic gets a distinct colour
-const TOPIC_COLORS = ["#c8323b", "#f6c453", "#f4878a", "#7a1d24", "#e8793a", "#3f8f4f"];
 
 async function userId() {
   const session = await getSession();
@@ -108,4 +109,24 @@ export async function getTodayStats(date: string): Promise<TodayStats> {
     sessions: byTopic.reduce((s, t) => s + t.sessions, 0),
     byTopic,
   };
+}
+
+// Full-length focus rounds per day between two local dates (inclusive), for the gem calendar.
+// Days with no sessions are left out. Cycles and gems are worked out from these counts in lib/gems.
+export async function getMonthSessions(from: string, to: string): Promise<DaySessions[]> {
+  const uid = await userId();
+  if (!uid || !DATE_RE.test(from) || !DATE_RE.test(to)) return [];
+
+  return db
+    .select({ date: focusSessions.date, sessions: sql<number>`count(*)::int` })
+    .from(focusSessions)
+    .where(
+      and(
+        eq(focusSessions.userId, uid),
+        gte(focusSessions.date, from),
+        lte(focusSessions.date, to),
+        gte(focusSessions.durationMinutes, FOCUS_MINUTES),
+      ),
+    )
+    .groupBy(focusSessions.date);
 }

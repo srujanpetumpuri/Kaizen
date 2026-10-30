@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { createWorkout, isDateKey, listWorkouts, parseEntryInput } from "@/db/workouts";
 import type { WorkoutEntryInput } from "@/db/workouts";
 import { ownsType } from "@/db/workout-types";
+import { ownsSchedule } from "@/db/schedules";
 import { currentUserId, json } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
 
   const v = parsed.value;
   const entry: WorkoutEntryInput = {
+    scheduleId: v.scheduleId!,
     date: v.date!,
     category: v.category ?? null,
     typeId: v.typeId ?? null,
@@ -33,6 +35,7 @@ export async function POST(req: NextRequest) {
     durationMinutes: v.durationMinutes ?? 60,
     completed: v.completed ?? false,
   };
+  if (!(await ownsSchedule(userId, entry.scheduleId))) return json({ error: "Unknown schedule" }, 400);
   if (entry.typeId !== null && !(await ownsType(userId, entry.typeId))) return json({ error: "Unknown icon" }, 400);
   return json(await createWorkout(userId, entry), 201);
 }

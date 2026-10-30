@@ -326,3 +326,47 @@
 }
 @media (prefers-reduced-motion: reduce) { .wk-tile, .wk-cell, .wk-tile::after, .wk-check { transition: none; } .wk-tile:hover, .wk-tile.armed { transform: none; } }
 .wk-row .wk-field:first-child { flex: 1.5; }
+
+/* ---------- schedules: one calendar per topic, plus a combined view ---------- */
+.wk-banner--warn { border-left-color: var(--sun); background: color-mix(in srgb, var(--sun) 22%, var(--paper)); }
+
+.wk-sched { padding-bottom: 0.9rem; margin-bottom: 1rem; border-bottom: 1px solid var(--rule); }
+.wk-sched-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
+.wk-sched-tab {
+  display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;
+  border: 2px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--sub);
+  font: 700 0.85rem var(--font-body); padding: 0.3rem 0.85rem;
+}
+.wk-sched-tab:hover { color: var(--ink); }
+.wk-sched-tab.on { background: var(--cta); color: var(--on-cta); }
+/* the dot carries the schedule's colour; the name always sits beside it, so colour is never the only cue */
+.wk-sched-dot { display: inline-block; flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--sc); border: 1.5px solid var(--line); }
+.wk-sched-tab.on .wk-sched-dot { border-color: var(--on-cta); }
+
+.wk-sched-wrap { position: relative; display: inline-flex; }
+.wk-sched-wrap .wk-sched-tab { padding-right: 1.9rem; }
+.wk-sched-del {
+  position: absolute; right: 7px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; padding: 0;
+  display: grid; place-items: center; border: none; border-radius: 50%; background: none; color: var(--sub);
+  cursor: pointer; font: 700 1rem/1 var(--font-body);
+}
+.wk-sched-tab.on + .wk-sched-del { color: var(--on-cta); }
+.wk-sched-del:hover { background: var(--warn); color: var(--bg); }
+
+.wk-sched-add {
+  border: 2px dashed var(--rule); border-radius: 999px; background: none; color: var(--cta); cursor: pointer;
+  font: 700 0.85rem var(--font-body); padding: 0.3rem 0.85rem;
+}
+.wk-sched-add:hover:not(:disabled) { border-color: var(--cta); }
+.wk-sched-add:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.wk-sched-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem 0.9rem; margin-top: 0.8rem; }
+.wk-sched-field { margin: 0; flex: 1 1 220px; }
+.wk-sched-form .wk-create-btn { width: auto; padding: 0.5rem 1.4rem; }
+.wk-sched-form .wk-box-error { flex-basis: 100%; margin: 0; }
+.wk-sched-note { margin: 0.7rem 0 0; font-size: 0.8rem; color: var(--sub); }
+
+/* combined view: each task carries its schedule's colour */
+.wk-chip--sched, .wk-chip--sched:hover { border: 2px solid var(--sc); padding: 1px 5px 1px 1px; }
+.wk-block--sched { border-left-color: var(--sc); border-left-width: 6px; }
+.wk-modal-sched { display: flex; align-items: center; gap: 0.45rem; margin: -0.4rem 0 1rem; font: 600 0.85rem var(--font-body); color: var(--sub); }

@@ -11,6 +11,7 @@ export default function Header({ user }: { user: { name: string; email: string }
         </a>
         <nav aria-label="Sections" className="flex flex-1 gap-1">
           <a href="#focus" className={`${link} hidden sm:inline-block`}>Focus</a>
+          <a href="#gems" className={link}>Gems</a>
           <a href="#workouts" className={link}>Workouts</a>
         </nav>
         <ThemeToggle />

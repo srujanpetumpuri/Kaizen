@@ -78,6 +78,7 @@ export default function FocusTimer({ signedIn }: { signedIn: boolean }) {
         try {
           await logFocusSession({ topicId, minutes: MODES[0].minutes, date: localDateKey() });
           setStatsKey((k) => k + 1);
+          window.dispatchEvent(new Event("kaizen:session-logged")); // lets the gem calendar update
         } catch {
           setNotice("That session finished but couldn't be saved.");
         }

@@ -25,6 +25,7 @@ export function writeGuest<T>(key: string, items: T[]): boolean {
 }
 
 export const GUEST_WORKOUTS_KEY = "kaizen-guest-workouts";
+export const GUEST_SCHEDULES_KEY = "kaizen-guest-schedules";
 
 export const newGuestId = () =>
   `g-${typeof crypto?.randomUUID === "function" ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;

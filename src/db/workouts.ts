@@ -5,6 +5,7 @@ import { CATEGORY_KEYS } from "@/lib/workout-glyphs";
 import { MAX_OCCURRENCES, occurrenceDates, validateRule } from "@/lib/workout-repeat";
 
 export type WorkoutEntryInput = {
+  scheduleId: string; // the schedule (topic) this task belongs to
   date: string; // YYYY-MM-DD
   category: string | null; // built-in icon, or…
   typeId: string | null; // …a custom icon (exactly one is set)
@@ -34,9 +35,12 @@ export function parseEntryInput(body: any, partial: boolean): Parsed {
     if (!isDateKey(body.date)) return fail("date must be YYYY-MM-DD");
     v.date = body.date;
   }
-  // The icon is chosen when an entry is created and can't be swapped afterwards,
-  // so PATCH ignores category/typeId.
+  // The icon and the schedule are chosen when an entry is created and can't be swapped afterwards,
+  // so PATCH ignores category/typeId/scheduleId.
   if (!partial) {
+    if (!isUuid(body.scheduleId)) return fail("Choose a schedule");
+    v.scheduleId = body.scheduleId;
+
     const hasCategory = body.category !== undefined && body.category !== null;
     const hasType = body.typeId !== undefined && body.typeId !== null;
     if (hasCategory === hasType) return fail("Choose one workout icon");
@@ -90,6 +94,7 @@ const columns = {
   durationMinutes: workoutEntries.durationMinutes,
   completed: workoutEntries.completed,
   seriesId: workoutEntries.seriesId,
+  scheduleId: workoutEntries.scheduleId,
 };
 
 export async function listWorkouts(userId: string, from: string, to: string) {
@@ -176,6 +181,7 @@ export async function repeatWorkout(userId: string, id: string, rawRule: unknown
     durationMinutes: src.durationMinutes,
     completed: false,
     seriesId,
+    scheduleId: src.scheduleId,
   }));
 
   // one HTTP round-trip, applied atomically: either the whole series exists or none of it does

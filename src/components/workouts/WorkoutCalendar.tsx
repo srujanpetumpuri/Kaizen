@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import IconBox from "./IconBox";
+import ScheduleBar, { ALL_SCHEDULES } from "./ScheduleBar";
 import { BUILTIN, CheckIcon, FALLBACK_TYPE, typeFromCustom, type Category, type CustomType, type TypeDef } from "./icons";
 import type { GlyphKey, Shade } from "@/lib/workout-glyphs";
-import { GUEST_WORKOUTS_KEY, newGuestId, newTempId, readGuest, writeGuest } from "@/lib/guest-store";
+import { GUEST_SCHEDULES_KEY, GUEST_WORKOUTS_KEY, newGuestId, newTempId, readGuest, writeGuest } from "@/lib/guest-store";
+import { DEFAULT_SCHEDULE_TOPIC, MAX_SCHEDULES, findClashes, type Schedule } from "@/lib/schedules";
+import { TOPIC_COLORS, cleanTopicName } from "@/lib/topic-colors";
 import "./workouts.css";
 import { MAX_OCCURRENCES, addDays, occurrenceDates, validateRule, weekdayOf, type RepeatRule } from "@/lib/workout-repeat";
 
@@ -23,6 +26,7 @@ type Entry = {
   durationMinutes: number;
   completed: boolean;
   seriesId: string | null; // shared by every workout created from one "Repeat"
+  scheduleId: string | null; // the schedule (topic) it belongs to; null only for tasks saved before schedules existed
 };
 
 type NewEntry = Omit<Entry, "id">;
@@ -30,6 +34,12 @@ type NewEntry = Omit<Entry, "id">;
 type Drag = { kind: "new"; ref: string } | { kind: "move"; id: string };
 
 const isTemp = (id: string) => id.startsWith("tmp-");
+
+// keep the current schedule if it still exists, otherwise fall back to the first one
+const keepActive = (prev: string, list: Schedule[]) =>
+  prev === ALL_SCHEDULES || list.some((s) => s.id === prev) ? prev : (list[0]?.id ?? ALL_SCHEDULES);
+
+const schedStyle = (color: string) => ({ "--sc": color }) as React.CSSProperties;
 
 /* ---------- date helpers (all local time, "YYYY-MM-DD" keys) ---------- */
 
@@ -109,6 +119,13 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [custom, setCustom] = useState<CustomType[]>([]);
 
+  // Each schedule is one topic's calendar. activeId is ALL_SCHEDULES (every schedule's tasks in one
+  // calendar) or a schedule id; "" only until the schedules have loaded.
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [activeId, setActiveId] = useState("");
+  const [schedulesLoaded, setSchedulesLoaded] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null); // clash warning
+
   const dragRef = useRef<Drag | null>(null);
 
   // Visitors who aren't signed in keep their calendar in this browser (localStorage) instead of the database.
@@ -128,16 +145,48 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
     setCursor(k);
   }, []);
 
+  /* ----- schedules load first, so tasks saved before schedules existed can be moved into one ----- */
   useEffect(() => {
     if (!ready) return;
     if (!signedIn) {
-      if (!guestLoaded) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
-        setEntries(readGuest<Entry>(GUEST_WORKOUTS_KEY));
-        setGuestLoaded(true);
-      }
+      /* eslint-disable react-hooks/set-state-in-effect -- localStorage only exists in the browser */
+      const saved = readGuest<Schedule>(GUEST_SCHEDULES_KEY);
+      const list: Schedule[] = saved.length
+        ? saved
+        : [{ id: newGuestId(), topicId: null, topic: DEFAULT_SCHEDULE_TOPIC, color: TOPIC_COLORS[0] }];
+      setSchedules(list);
+      setActiveId((a) => keepActive(a, list));
+      setSchedulesLoaded(true);
+      /* eslint-enable react-hooks/set-state-in-effect */
       return;
     }
+    let cancelled = false;
+    fetch("/api/schedules")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((list: Schedule[]) => {
+        if (cancelled) return;
+        setSchedules(list);
+        setActiveId((a) => keepActive(a, list));
+        setSchedulesLoaded(true);
+      })
+      .catch(() => !cancelled && setError("Couldn't load your schedules."));
+    return () => {
+      cancelled = true;
+    };
+  }, [signedIn, ready]);
+
+  // guest tasks: load once, moving any saved before schedules existed into the first schedule
+  useEffect(() => {
+    if (signedIn || !schedulesLoaded || guestLoaded) return;
+    const first = schedules[0]?.id ?? null;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
+    setEntries(readGuest<Entry>(GUEST_WORKOUTS_KEY).map((e) => (e.scheduleId ? e : { ...e, scheduleId: first })));
+    setGuestLoaded(true);
+  }, [signedIn, schedulesLoaded, guestLoaded, schedules]);
+
+  // signed-in tasks: a window around the cursor's year, across every schedule (so clashes can be spotted)
+  useEffect(() => {
+    if (!ready || !signedIn || !schedulesLoaded) return;
     let cancelled = false;
     fetch(`/api/workouts?from=${cursorYear - 1}-12-15&to=${cursorYear + 1}-01-15`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
@@ -146,7 +195,7 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [signedIn, cursorYear, ready, guestLoaded]);
+  }, [signedIn, cursorYear, ready, schedulesLoaded]);
 
   // save guest changes (only after the first load, so an empty initial state never overwrites a saved plan)
   useEffect(() => {
@@ -156,6 +205,14 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
       setError("Your browser wouldn't save the plan, so it will be lost when you leave.");
     }
   }, [entries, signedIn, guestLoaded]);
+
+  useEffect(() => {
+    if (signedIn || !schedulesLoaded) return;
+    if (!writeGuest(GUEST_SCHEDULES_KEY, schedules)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reports a browser storage failure
+      setError("Your browser wouldn't save your schedules, so they will be lost when you leave.");
+    }
+  }, [schedules, signedIn, schedulesLoaded]);
 
   useEffect(() => {
     if (!ready || !signedIn) {
@@ -177,9 +234,19 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
   const typeMap = useMemo(() => new Map(types.map((t) => [t.ref, t])), [types]);
   const typeOf = (e: Entry): TypeDef => typeMap.get(e.category ? `c:${e.category}` : `t:${e.typeId}`) ?? FALLBACK_TYPE;
 
+  const scheduleMap = useMemo(() => new Map(schedules.map((s) => [s.id, s])), [schedules]);
+  const showAll = activeId === ALL_SCHEDULES;
+
+  // what the calendar shows: one schedule's tasks, or every schedule's in the combined view.
+  // `entries` itself always holds all of them, which is what clash detection checks against.
+  const visible = useMemo(
+    () => (showAll ? entries : entries.filter((e) => e.scheduleId === activeId)),
+    [entries, showAll, activeId]
+  );
+
   const byDate = useMemo(() => {
     const map = new Map<string, Entry[]>();
-    for (const e of entries) {
+    for (const e of visible) {
       const list = map.get(e.date);
       if (list) list.push(e);
       else map.set(e.date, [e]);
@@ -188,10 +255,28 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
       list.sort((a, b) => (a.startMinutes ?? -1) - (b.startMinutes ?? -1));
     }
     return map;
-  }, [entries]);
+  }, [visible]);
+
+  /* ----- clashes with other schedules ----- */
+  const topicOf = (e: Entry) => (e.scheduleId ? scheduleMap.get(e.scheduleId)?.topic : undefined);
+  const timeRange = (e: Entry) => `${fmtTime(e.startMinutes!)} – ${fmtTime((e.startMinutes! + e.durationMinutes) % 1440)}`;
+
+  // Warns when a task overlaps tasks in OTHER schedules, and clears an earlier warning when it no longer does.
+  // It only warns: the user decides whether the overlap matters.
+  function checkClashes(task: Entry) {
+    const clashes = findClashes(task, entries);
+    if (clashes.length === 0) return setNotice(null);
+    const list = clashes
+      .slice(0, 2)
+      .map((c) => `“${c.title ?? typeOf(c).name}”${topicOf(c) ? ` in ${topicOf(c)}` : ""} (${timeRange(c)})`)
+      .join(" and ");
+    const more = clashes.length > 2 ? ` and ${clashes.length - 2} more` : "";
+    setNotice(`Heads up: “${task.title ?? typeOf(task).name}” (${timeRange(task)}) overlaps ${list}${more}.`);
+  }
 
   /* ----- mutations (optimistic) ----- */
   async function create(input: NewEntry) {
+    checkClashes({ ...input, id: "new" });
     if (!signedIn) {
       setEntries((es) => [...es, { ...input, id: newGuestId() }]);
       return;
@@ -220,6 +305,10 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
     if (isTemp(id)) return;
     const prev = entries.find((e) => e.id === id);
     if (!prev) return;
+    // moving a task or changing its time/length can create a clash too
+    if ("date" in changes || "startMinutes" in changes || "durationMinutes" in changes) {
+      checkClashes({ ...prev, ...changes });
+    }
     setEntries((es) => es.map((e) => (e.id === id ? { ...e, ...changes } : e)));
     if (!signedIn) return;
     const run = fetch(`/api/workouts/${id}`, {
@@ -324,11 +413,66 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
     }
   }
 
+  // resolves to an error message, or null on success. A topic can only have one schedule.
+  async function createSchedule(raw: string): Promise<string | null> {
+    const name = cleanTopicName(raw);
+    if (!name) return "Give the schedule a topic.";
+    const taken = schedules.find((s) => s.topic.toLowerCase() === name.toLowerCase());
+    if (taken) return `You already have a schedule for “${taken.topic}”.`;
+    if (schedules.length >= MAX_SCHEDULES) return `You can have up to ${MAX_SCHEDULES} schedules.`;
+
+    if (!signedIn) {
+      const made: Schedule = { id: newGuestId(), topicId: null, topic: name, color: TOPIC_COLORS[schedules.length % TOPIC_COLORS.length] };
+      setSchedules((list) => [...list, made]);
+      setActiveId(made.id);
+      return null;
+    }
+    try {
+      const res = await fetch("/api/schedules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: name }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) return data?.error ?? "Couldn't create that schedule.";
+      setSchedules((list) => [...list, data as Schedule]);
+      setActiveId((data as Schedule).id);
+      return null;
+    } catch {
+      return "Couldn't create that schedule.";
+    }
+  }
+
+  async function deleteSchedule(s: Schedule) {
+    if (!window.confirm(`Delete the “${s.topic}” schedule? All of its tasks will be removed too.`)) return;
+    if (signedIn) {
+      try {
+        const res = await fetch(`/api/schedules/${s.id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          return setError(data?.error ?? "Couldn't delete that schedule.");
+        }
+      } catch {
+        return setError("Couldn't delete that schedule.");
+      }
+    }
+    const rest = schedules.filter((x) => x.id !== s.id);
+    setSchedules(rest);
+    setEntries((es) => es.filter((e) => e.scheduleId !== s.id));
+    setActiveId((a) => (a === s.id ? (rest[0]?.id ?? ALL_SCHEDULES) : a));
+    setNotice(null);
+  }
+
   const toggleDone = (e: Entry) => patch(e.id, { completed: !e.completed });
 
   /* ----- placing things ----- */
   function place(ref: string, date: string, startMinutes: number | null) {
-    const base = { date, title: null, notes: null, startMinutes, durationMinutes: 60, completed: false, seriesId: null };
+    // a new task needs a home: the combined view only shows tasks, it can't say which schedule one belongs to
+    if (!scheduleMap.has(activeId)) {
+      setError("Pick a schedule to add tasks to. “All schedules” is a combined view.");
+      return;
+    }
+    const base = { scheduleId: activeId, date, title: null, notes: null, startMinutes, durationMinutes: 60, completed: false, seriesId: null };
     create(
       ref.startsWith("t:")
         ? { ...base, category: null, typeId: ref.slice(2) }
@@ -426,6 +570,13 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
     return () => clearTimeout(t);
   }, [error]);
 
+  // longer than errors: a clash warning takes a moment to read
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 12000);
+    return () => clearTimeout(t);
+  }, [notice]);
+
   const selected = entries.find((e) => e.id === selectedId) ?? null;
 
   /* ---------- renderers ---------- */
@@ -448,16 +599,18 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
 
   const chip = (e: Entry) => {
     const t = typeOf(e);
+    const sched = showAll && e.scheduleId ? scheduleMap.get(e.scheduleId) : undefined;
     return (
       <div
         key={e.id}
-        className={`wk-chip wk-shade--${t.shade} ${e.completed ? "done" : ""}`}
+        className={`wk-chip wk-shade--${t.shade} ${e.completed ? "done" : ""} ${sched ? "wk-chip--sched" : ""}`}
+        style={sched ? schedStyle(sched.color) : undefined}
         {...entryDragProps(e)}
         onClick={(ev) => {
           ev.stopPropagation();
           setSelectedId(e.id);
         }}
-        title={`${e.title ?? t.name}${e.startMinutes != null ? ` · ${fmtTime(e.startMinutes)}` : ""}${e.completed ? " · done" : ""}${e.seriesId ? " · repeats" : ""}`}
+        title={`${e.title ?? t.name}${sched ? ` · ${sched.topic}` : ""}${e.startMinutes != null ? ` · ${fmtTime(e.startMinutes)}` : ""}${e.completed ? " · done" : ""}${e.seriesId ? " · repeats" : ""}`}
       >
         <span className="wk-dot">{e.completed ? <CheckIcon size={12} /> : <t.Icon size={12} />}</span>
         <span className="wk-chip-text">{e.title ?? t.name}</span>
@@ -617,15 +770,17 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
             {timed.map((e) => {
               const pos = lay.get(e.id) ?? { col: 0, cols: 1 };
               const t = typeOf(e);
+              const sched = showAll && e.scheduleId ? scheduleMap.get(e.scheduleId) : undefined;
               return (
                 <div
                   key={e.id}
-                  className={`wk-block wk-shade--${t.shade} ${e.completed ? "done" : ""}`}
+                  className={`wk-block wk-shade--${t.shade} ${e.completed ? "done" : ""} ${sched ? "wk-block--sched" : ""}`}
                   style={{
                     top: (e.startMinutes! / 60) * HOUR_H,
                     height: Math.max((e.durationMinutes / 60) * HOUR_H - 2, 26),
                     left: `calc(72px + (100% - 80px) * ${pos.col / pos.cols})`,
                     width: `calc((100% - 80px) / ${pos.cols} - 4px)`,
+                    ...(sched ? schedStyle(sched.color) : {}),
                   }}
                   {...entryDragProps(e)}
                   onClick={(ev) => {
@@ -637,7 +792,8 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
                   <div className="wk-block-text">
                     <strong>{e.title ?? t.name}</strong>
                     <small>
-                      {fmtTime(e.startMinutes!)} – {fmtTime((e.startMinutes! + e.durationMinutes) % 1440)}
+                      {timeRange(e)}
+                      {sched ? ` · ${sched.topic}` : ""}
                     </small>
                   </div>
                   {checkButton(e)}
@@ -657,8 +813,8 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
   return (
     <div className="wk-page">
       <div className="wk-container">
-        <h2 className="wk-title">Workout planner</h2>
-        <p className="wk-lede">Drag a workout onto a day. Switch between year, month and day to plan it your way.</p>
+        <h2 className="wk-title">Schedule planner</h2>
+        <p className="wk-lede">Make a schedule for each topic, then drag tasks onto a day. Switch between year, month and day to plan it your way.</p>
 
         {!signedIn && (
           <p className="wk-banner">
@@ -666,6 +822,12 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
           </p>
         )}
         {error && <p className="wk-banner wk-banner--error" role="alert">{error}</p>}
+        {notice && (
+          <p className="wk-banner wk-banner--warn" role="alert">
+            {notice}{" "}
+            <button type="button" className="wk-link" onClick={() => setNotice(null)}>Dismiss</button>
+          </p>
+        )}
         {armed && (
           <p className="wk-banner" role="status">
             Placing <b>{typeMap.get(armed)?.name ?? "icon"}</b> — tap a date. Tap the icon again, or press Esc, to cancel.
@@ -675,6 +837,15 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
         <div className="wk-body">
 
           <section className="wk-card">
+            {schedulesLoaded && (
+              <ScheduleBar
+                schedules={schedules}
+                activeId={activeId}
+                onSelect={setActiveId}
+                onCreate={createSchedule}
+                onDelete={deleteSchedule}
+              />
+            )}
             <div className="wk-toolbar">
               <div className="wk-tabs" role="tablist">
                 {(["year", "month", "day"] as View[]).map((v) => (
@@ -730,6 +901,7 @@ export default function WorkoutCalendar({ signedIn }: { signedIn: boolean }) {
           key={selected.id}
           entry={selected}
           type={typeOf(selected)}
+          schedule={selected.scheduleId ? scheduleMap.get(selected.scheduleId) : undefined}
           onClose={() => setSelectedId(null)}
           onPatch={(c) => patch(selected.id, c)}
           onRepeat={(rule) => repeatEntry(selected, rule)}
@@ -760,6 +932,7 @@ function NowLine() {
 function EntryModal({
   entry,
   type,
+  schedule,
   onClose,
   onPatch,
   onRepeat,
@@ -767,6 +940,7 @@ function EntryModal({
 }: {
   entry: Entry;
   type: TypeDef;
+  schedule: Schedule | undefined;
   onClose: () => void;
   onPatch: (c: Partial<NewEntry>) => void;
   onRepeat: (rule: RepeatRule) => Promise<string | null>;
@@ -786,6 +960,11 @@ function EntryModal({
           <span className="wk-modal-icon"><Icon size={22} /></span>
           <h2>{label}</h2>
         </div>
+        {schedule && (
+          <p className="wk-modal-sched" style={schedStyle(schedule.color)}>
+            <i className="wk-sched-dot" aria-hidden="true" /> {schedule.topic} schedule
+          </p>
+        )}
 
         <button
           type="button"
