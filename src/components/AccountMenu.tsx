@@ -50,7 +50,7 @@ export default function AccountMenu({ user }: { user: User | null }) {
             aria-expanded={menu}
             aria-label="Account menu"
             onClick={() => setMenu((o) => !o)}
-            className="grid h-10 w-10 place-items-center rounded-full border-2 border-line bg-cta font-head text-lg font-extrabold uppercase text-on-cta shadow-[3px_3px_0_var(--line)]"
+            className="grid h-10 w-10 place-items-center rounded-full border-2 border-line bg-cta font-head text-lg font-extrabold uppercase text-on-cta shadow-[3px_3px_0_var(--shadow-c)]"
           >
             {(user.name || user.email)[0]}
           </button>
@@ -77,7 +77,7 @@ export default function AccountMenu({ user }: { user: User | null }) {
         <button
           type="button"
           onClick={() => setDialog(true)}
-          className="whitespace-nowrap rounded-full border-2 border-line bg-cta px-4 py-2 text-sm font-bold sm:px-5 text-on-cta shadow-[3px_3px_0_var(--line)] transition hover:bg-cta-hover active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          className="whitespace-nowrap rounded-full border-2 border-line bg-cta px-4 py-2 text-sm font-bold sm:px-5 text-on-cta shadow-[3px_3px_0_var(--shadow-c)] transition hover:bg-cta-hover active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
         >
           Sign in
         </button>

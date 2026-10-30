@@ -24,7 +24,7 @@
 .wk-banner--error { border-left-color: var(--warn); color: var(--warn); }
 
 /* ---------- icon box (right): All icons / Create ---------- */
-.wk-box { position: sticky; top: 1rem; background: var(--paper); border: 2px solid var(--line); border-radius: 24px; padding: 0.8rem 1rem 1.1rem; box-shadow: 5px 5px 0 var(--line); }
+.wk-box { position: sticky; top: 1rem; background: var(--paper); border: 2px solid var(--line); border-radius: 24px; padding: 0.8rem 1rem 1.1rem; box-shadow: 5px 5px 0 var(--shadow-c); }
 .wk-box-tabs { display: flex; background: var(--bg); border: 2px solid var(--line); border-radius: 999px; padding: 3px; margin-bottom: 0.9rem; }
 .wk-box-tabs button { flex: 1; border: none; background: none; color: var(--sub); cursor: pointer; border-radius: 999px; font: 700 0.85rem var(--font-body); padding: 0.4rem 0.6rem; }
 .wk-box-tabs button:hover { color: var(--ink); }
@@ -87,7 +87,7 @@
 .wk-create-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ---------- calendar card ---------- */
-.wk-card { background: var(--paper); border: 2px solid var(--line); border-radius: 28px; padding: 1.2rem 1.3rem 1.4rem; min-width: 0; box-shadow: 5px 5px 0 var(--line); }
+.wk-card { background: var(--paper); border: 2px solid var(--line); border-radius: 28px; padding: 1.2rem 1.3rem 1.4rem; min-width: 0; box-shadow: 5px 5px 0 var(--shadow-c); }
 
 .wk-toolbar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem 1.2rem;

@@ -62,7 +62,7 @@ export default function TopicPicker({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full border-2 border-line bg-paper px-4 py-1.5 text-sm font-bold text-ink shadow-[3px_3px_0_var(--line)] transition-transform hover:-translate-y-0.5"
+        className="inline-flex items-center gap-2 rounded-full border-2 border-line bg-paper px-4 py-1.5 text-sm font-bold text-ink shadow-[3px_3px_0_var(--shadow-c)] transition-transform hover:-translate-y-0.5"
       >
         <span className="h-3 w-3 rounded-full border-2 border-line" style={{ background: selected?.color ?? "transparent" }} />
         {selected ? selected.name : "No topic"}
@@ -113,7 +113,7 @@ export default function TopicPicker({
                     placeholder="Topic name"
                     className="min-w-0 flex-1 rounded-2xl border-2 border-line bg-bg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cta"
                   />
-                  <button type="button" onClick={add} disabled={pending || !name.trim()} className="rounded-full border-2 border-line bg-cta px-4 py-2 text-sm font-bold text-on-cta shadow-[3px_3px_0_var(--line)] disabled:opacity-50">
+                  <button type="button" onClick={add} disabled={pending || !name.trim()} className="rounded-full border-2 border-line bg-cta px-4 py-2 text-sm font-bold text-on-cta shadow-[3px_3px_0_var(--shadow-c)] disabled:opacity-50">
                     {pending ? "…" : "Add"}
                   </button>
                 </div>

@@ -89,7 +89,7 @@ export default function Timer({
       <div className="flex gap-3">
         <button
           onClick={running ? t.pause : t.start}
-          className="rounded-full border-2 border-[var(--line)] bg-[var(--cta)] px-8 py-2.5 font-semibold text-white shadow-[3px_3px_0_var(--line)] hover:bg-[var(--cta-hover)]"
+          className="rounded-full border-2 border-[var(--line)] bg-[var(--cta)] px-8 py-2.5 font-semibold text-white shadow-[3px_3px_0_var(--shadow-c)] hover:bg-[var(--cta-hover)]"
         >
           {running ? "Pause" : t.status === "paused" ? "Resume" : "Start"}
         </button>

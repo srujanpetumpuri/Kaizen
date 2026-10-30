@@ -11,7 +11,7 @@ const manrope = Manrope({
   variable: "--font-manrope",
 });
 
-const THEME_SCRIPT = `try{var t=localStorage.getItem("kaizen-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
+const THEME_SCRIPT = `try{var t=localStorage.getItem("kaizen-theme");if(t==="dark")t="red";if(t!=="light"&&t!=="night"&&t!=="red")t=matchMedia("(prefers-color-scheme: dark)").matches?"night":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
 
 export const metadata: Metadata = {
   title: "Kaizen",

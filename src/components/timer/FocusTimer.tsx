@@ -145,12 +145,12 @@ export default function FocusTimer({ signedIn }: { signedIn: boolean }) {
   const ringColor = mode === "focus" ? "var(--cta)" : "var(--ok)";
 
   const btn =
-    "inline-flex items-center justify-center gap-2 rounded-full border-2 border-line font-bold shadow-[3px_3px_0_var(--line)] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none";
+    "inline-flex items-center justify-center gap-2 rounded-full border-2 border-line font-bold shadow-[3px_3px_0_var(--shadow-c)] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none";
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-6 lg:flex-row lg:items-start">
       <section className="w-full max-w-lg rounded-sticker border-2 border-line bg-paper p-6 shadow-sticker-lg sm:p-8" aria-label="Focus timer">
-        <div role="tablist" aria-label="Timer mode" className="mx-auto mb-5 flex w-fit max-w-full justify-center gap-0.5 sm:gap-1 rounded-full border-2 border-line bg-bg p-1 shadow-[3px_3px_0_var(--line)]">
+        <div role="tablist" aria-label="Timer mode" className="mx-auto mb-5 flex w-fit max-w-full justify-center gap-0.5 sm:gap-1 rounded-full border-2 border-line bg-bg p-1 shadow-[3px_3px_0_var(--shadow-c)]">
           {MODES.map((m) => (
             <button
               key={m.key}
