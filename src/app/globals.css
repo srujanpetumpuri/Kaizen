@@ -21,14 +21,20 @@
   --ok: #1f8a4c;
   --ok-ink: #ffffff;
   --scrim: rgba(43, 20, 17, 0.55);
-  --shadow-lg: 8px 8px 0 #2b1411;
+  --shadow-c: #2b1411; /* colour of the hard "sticker" shadows (transparent in Night) */
+  --shadow-lg: 8px 8px 0 var(--shadow-c);
+
+  /* page background: image + a veil on top so text stays readable */
+  --bg-image: url("/bg-food-gym.jpg");
+  --bg-veil: rgba(251, 227, 166, 0.55);
 
   --font-head: var(--font-bricolage), system-ui, sans-serif;
   --font-body: var(--font-manrope), system-ui, sans-serif;
   color-scheme: light;
 }
 
-[data-theme="dark"] {
+/* Red — the original maroon dark theme */
+[data-theme="red"] {
   --bg: #240d10;
   --paper: #3a1519;
   --raise: #4b1d22;
@@ -45,7 +51,33 @@
   --ok: #8fcf6b;
   --ok-ink: #0d1a06;
   --scrim: rgba(20, 6, 8, 0.78);
-  --shadow-lg: 8px 8px 0 #f6c453;
+  --shadow-c: #f6c453;
+  --bg-image: url("/bg-food-gym.jpg");
+  --bg-veil: rgba(36, 13, 16, 0.86);
+  color-scheme: dark;
+}
+
+/* Night — slate blue with gold accents, flat (no hard shadows) */
+[data-theme="night"] {
+  --bg: #1f272f;
+  --paper: #28313a;
+  --raise: #333e49;
+  --ink: #fbe8b8;
+  --sub: #cdbf9c;
+  --line: #e9c97c;
+  --cta: #f9d98a;
+  --on-cta: #1f272f;
+  --cta-hover: #ffe5a8;
+
+  --edge: rgba(251, 232, 184, 0.14);
+  --rule: rgba(251, 232, 184, 0.28);
+  --warn: #ff9a8a;
+  --ok: #8fcf6b;
+  --ok-ink: #0d1a06;
+  --scrim: rgba(12, 16, 20, 0.78);
+  --shadow-c: transparent;
+  --bg-image: url("/bg-night.jpg");
+  --bg-veil: rgba(31, 39, 47, 0.1);
   color-scheme: dark;
 }
 
@@ -66,8 +98,8 @@
   --font-head: var(--font-bricolage), system-ui, sans-serif;
   --font-body: var(--font-manrope), system-ui, sans-serif;
 
-  --shadow-sticker: 5px 5px 0 var(--line);
-  --shadow-sticker-lg: 8px 8px 0 var(--line);
+  --shadow-sticker: 5px 5px 0 var(--shadow-c);
+  --shadow-sticker-lg: 8px 8px 0 var(--shadow-c);
   --radius-sticker: 28px;
 }
 
@@ -75,16 +107,8 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--blush) 55%, transparent), transparent 36%),
-    radial-gradient(circle at 0% 65%, color-mix(in srgb, var(--blush) 30%, transparent), transparent 34%),
-    var(--bg);
-  background-attachment: fixed;
-}
-
-[data-theme="dark"] body {
-  background:
-    radial-gradient(circle at 100% 0%, rgba(200, 50, 59, 0.35), transparent 40%),
-    radial-gradient(circle at 0% 70%, rgba(122, 29, 36, 0.5), transparent 38%),
+    linear-gradient(var(--bg-veil), var(--bg-veil)),
+    var(--bg-image) center / cover no-repeat,
     var(--bg);
   background-attachment: fixed;
 }
