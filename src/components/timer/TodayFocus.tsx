@@ -21,8 +21,8 @@ export default function TodayFocus({ signedIn, refreshKey, visitSessions }: { si
   const max = Math.max(1, ...(stats?.byTopic.map((t) => t.minutes) ?? [1]));
 
   return (
-    <aside className="w-full rounded-sticker border-2 border-line bg-paper p-6 shadow-sticker lg:max-w-xs" aria-label="Today's focus">
-      <h2 className="font-head text-2xl">Today</h2>
+    <aside className="w-full rounded-sticker border-2 border-line bg-paper p-4 shadow-sticker sm:p-5" aria-label="Session stats">
+      <h2 className="font-head text-xl">Session stats</h2>
 
       {!signedIn ? (
         <div className="mt-3 space-y-3 text-sm text-sub">

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getMonthSessions } from "@/lib/focus-actions";
-import { CYCLE_SESSIONS, FOCUS_MINUTES, GEMS, cyclesFrom, gemFor, type Gem } from "@/lib/gems";
+import { CYCLE_SESSIONS, GEMS, cyclesFrom, gemFor, type Gem } from "@/lib/gems";
 import { MONTH_NAMES, WEEKDAYS_SHORT, localDateKey, monthGrid } from "@/lib/dates";
 
 // The gem image, or a coloured diamond if the file isn't in /public (yet).
@@ -72,106 +72,99 @@ export default function GemCalendar({ signedIn }: { signedIn: boolean }) {
   const monthCycles = cells.filter((c) => c.inMonth).reduce((n, c) => n + cyclesFrom(sessionsByDay[c.key] ?? 0), 0);
 
   const navBtn =
-    "grid h-9 min-w-9 place-items-center rounded-lg border border-rule bg-raise px-2 font-bold text-ink hover:bg-bg";
+    "grid h-7 min-w-7 place-items-center rounded-md border border-rule bg-raise px-1.5 text-ink hover:bg-bg";
 
   return (
-    <div>
-      <h2 className="font-head text-4xl font-extrabold leading-none sm:text-5xl">Gems</h2>
-      <p className="mb-6 mt-2 text-lg text-sub">
-        Finish a cycle ({CYCLE_SESSIONS} focus rounds of {FOCUS_MINUTES} minutes) and earn a gem for the day. The more cycles, the rarer the gem.
-      </p>
+    <section id="gems" className="rounded-sticker border-2 border-line bg-paper p-3 shadow-sticker" aria-label="Gem calendar">
+      <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+        <h2 className="font-head text-lg font-extrabold leading-none">Gems</h2>
+        <div className="ml-auto flex gap-1">
+          <button type="button" className={navBtn} onClick={() => shift(-1)} aria-label="Previous month">
+            <ChevronLeft size={14} />
+          </button>
+          <button type="button" className={`${navBtn} px-2 text-[11px] font-bold`} onClick={() => cursor && setCursor({ y: new Date().getFullYear(), m: new Date().getMonth() })}>
+            Today
+          </button>
+          <button type="button" className={navBtn} onClick={() => shift(1)} aria-label="Next month">
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      </div>
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <h3 className="text-sm font-extrabold">{cursor ? `${MONTH_NAMES[cursor.m]} ${cursor.y}` : ""}</h3>
+        {signedIn && cursor && (
+          <p className="text-[11px] font-bold text-sub">{plural(monthCycles, "cycle")}</p>
+        )}
+      </div>
 
       {!signedIn && (
-        <p className="mb-5 rounded-lg border border-rule border-l-4 border-l-cta bg-paper px-4 py-3 text-sm font-semibold">
-          Sessions are only saved to your account, so there are no gems to show yet.{" "}
+        <p className="mb-2 rounded-md border border-rule border-l-4 border-l-cta bg-bg px-2 py-1.5 text-[11px] font-semibold">
           <button type="button" className="font-bold text-cta underline" onClick={() => window.dispatchEvent(new Event("kaizen:signin"))}>
             Sign in
           </button>{" "}
-          to start collecting.
+          to collect gems.
         </p>
       )}
       {failed && (
-        <p className="mb-5 rounded-lg border border-rule border-l-4 border-l-[var(--warn)] bg-paper px-4 py-3 text-sm font-semibold text-[var(--warn)]" role="alert">
+        <p className="mb-2 rounded-md border border-rule border-l-4 border-l-[var(--warn)] bg-bg px-2 py-1.5 text-[11px] font-semibold text-[var(--warn)]" role="alert">
           Couldn&apos;t load your sessions.
         </p>
       )}
 
-      <section className="rounded-sticker border-2 border-line bg-paper p-5 shadow-sticker sm:p-6" aria-label="Gem calendar">
-        <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-rule pb-4">
-          <div className="flex gap-1.5">
-            <button type="button" className={navBtn} onClick={() => shift(-1)} aria-label="Previous month">
-              <ChevronLeft size={18} />
-            </button>
-            <button type="button" className={`${navBtn} text-sm`} onClick={() => cursor && setCursor({ y: new Date().getFullYear(), m: new Date().getMonth() })}>
-              Today
-            </button>
-            <button type="button" className={navBtn} onClick={() => shift(1)} aria-label="Next month">
-              <ChevronRight size={18} />
-            </button>
-          </div>
-          <h3 className="font-head text-2xl font-extrabold">{cursor ? `${MONTH_NAMES[cursor.m]} ${cursor.y}` : ""}</h3>
-          {signedIn && cursor && (
-            <p className="text-sm font-bold text-sub sm:ml-auto">{plural(monthCycles, "cycle")} this month</p>
-          )}
-        </div>
+      <div className="grid grid-cols-7 gap-0.5" aria-hidden="true">
+        {WEEKDAYS_SHORT.map((d) => (
+          <span key={d} className="pb-0.5 text-center text-[9px] font-bold uppercase tracking-wider text-sub">
+            {d}
+          </span>
+        ))}
+      </div>
 
-        <div className="grid grid-cols-7 gap-1 sm:gap-2" aria-hidden="true">
-          {WEEKDAYS_SHORT.map((d) => (
-            <span key={d} className="pb-1 text-center text-xs font-bold uppercase tracking-wider text-sub">
-              {d}
-            </span>
-          ))}
-        </div>
-
-        <ul className="grid grid-cols-7 gap-1 sm:gap-2">
-          {cells.map((c) => {
-            const sessions = sessionsByDay[c.key] ?? 0;
-            const cycles = cyclesFrom(sessions);
-            const gem = gemFor(cycles);
-            const when = new Date(`${c.key}T00:00:00`).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
-            const summary = gem
-              ? `${plural(cycles, "cycle")}: ${gem.name} gem`
-              : sessions > 0
-                ? `${sessions} of ${CYCLE_SESSIONS} rounds toward the first gem`
-                : "";
-            return (
-              <li
-                key={c.key}
-                title={summary ? `${when} · ${summary}${sessions > cycles * CYCLE_SESSIONS && gem ? ` (${plural(sessions, "round")})` : ""}` : undefined}
-                aria-current={c.key === todayKey ? "date" : undefined}
-                className={`relative flex min-h-[68px] flex-col rounded-xl border p-1.5 sm:min-h-[96px] sm:p-2 ${
-                  c.key === todayKey ? "border-2 border-cta bg-raise" : "border-rule bg-bg"
-                } ${c.inMonth ? "" : "opacity-45"}`}
-              >
-                <span className="text-xs font-bold text-sub sm:text-sm">{c.day}</span>
-                {gem ? (
-                  <span role="img" aria-label={`${when}: ${summary}`} className="mx-auto mt-0.5 block h-8 w-8 sm:h-12 sm:w-12">
-                    <GemImage gem={gem} />
-                  </span>
-                ) : sessions > 0 ? (
-                  <span className="mt-auto text-center text-[11px] font-bold text-sub sm:text-xs" aria-label={`${when}: ${summary}`}>
-                    {sessions}/{CYCLE_SESSIONS}
-                  </span>
-                ) : null}
-                {gem && <span className="absolute bottom-1 right-1.5 text-[11px] font-extrabold sm:text-xs">×{cycles}</span>}
-              </li>
-            );
-          })}
-        </ul>
-
-        <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-rule pt-4" aria-label="Gem guide">
-          {GEMS.map((g, i) => (
-            <li key={g.name} className="flex items-center gap-2 text-sm font-bold">
-              <span className="block h-7 w-7">
-                <GemImage gem={g} />
-              </span>
-              <span>
-                {g.name} <span className="font-semibold text-sub">· {i === GEMS.length - 1 ? `${g.cycles}+ cycles` : plural(g.cycles, "cycle")}</span>
-              </span>
+      <ul className="grid grid-cols-7 gap-px">
+        {cells.map((c) => {
+          const sessions = sessionsByDay[c.key] ?? 0;
+          const cycles = cyclesFrom(sessions);
+          const gem = gemFor(cycles);
+          const when = new Date(`${c.key}T00:00:00`).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
+          const summary = gem
+            ? `${plural(cycles, "cycle")}: ${gem.name} gem`
+            : sessions > 0
+              ? `${sessions} of ${CYCLE_SESSIONS} rounds toward the first gem`
+              : "";
+          return (
+            <li
+              key={c.key}
+              title={summary ? `${when} · ${summary}${sessions > cycles * CYCLE_SESSIONS && gem ? ` (${plural(sessions, "round")})` : ""}` : when}
+              aria-current={c.key === todayKey ? "date" : undefined}
+              className={`relative flex h-7 items-center justify-center rounded-sm border ${
+                c.key === todayKey ? "border-cta bg-raise" : "border-rule bg-bg"
+              } ${c.inMonth ? "" : "opacity-45"}`}
+            >
+              {gem ? (
+                <span role="img" aria-label={`${when}: ${summary}`} className="block h-4 w-4">
+                  <GemImage gem={gem} />
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold leading-none text-sub">{c.day}</span>
+              )}
+              {gem && cycles > 1 && <span className="absolute bottom-0 right-px text-[7px] font-extrabold leading-none">×{cycles}</span>}
+              {sessions > 0 && !gem && (
+                <span className="sr-only">{sessions}/{CYCLE_SESSIONS}</span>
+              )}
             </li>
-          ))}
-        </ul>
-      </section>
-    </div>
+          );
+        })}
+      </ul>
+
+      <ul className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-rule pt-2" aria-label="Gem guide">
+        {GEMS.map((g, i) => (
+          <li key={g.name} className="flex items-center gap-1 text-[10px] font-bold" title={`${g.name} · ${i === GEMS.length - 1 ? `${g.cycles}+ cycles` : plural(g.cycles, "cycle")}`}>
+            <span className="block h-4 w-4">
+              <GemImage gem={g} />
+            </span>
+            <span className="text-sub">{i === GEMS.length - 1 ? `${g.cycles}+` : g.cycles}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 import TopicPicker from "./TopicPicker";
 import TodayFocus from "./TodayFocus";
+import GemCalendar from "./GemCalendar";
 import { logFocusSession } from "@/lib/focus-actions";
 import { localDateKey } from "@/lib/dates";
 
@@ -149,8 +150,8 @@ export default function FocusTimer({ signedIn }: { signedIn: boolean }) {
     "inline-flex items-center justify-center gap-2 rounded-full border-2 border-line font-bold shadow-[3px_3px_0_var(--shadow-c)] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none";
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-6 lg:flex-row lg:items-start">
-      <section className="w-full max-w-lg rounded-sticker border-2 border-line bg-paper p-6 shadow-sticker-lg sm:p-8" aria-label="Focus timer">
+    <div className="flex w-full flex-col items-center justify-center gap-4 lg:flex-row lg:items-start lg:gap-5">
+      <section className="w-full max-w-lg rounded-sticker border-2 border-line bg-paper p-5 shadow-sticker-lg sm:p-6" aria-label="Focus timer">
         <div role="tablist" aria-label="Timer mode" className="mx-auto mb-5 flex w-fit max-w-full justify-center gap-0.5 sm:gap-1 rounded-full border-2 border-line bg-bg p-1 shadow-[3px_3px_0_var(--shadow-c)]">
           {MODES.map((m) => (
             <button
@@ -172,7 +173,7 @@ export default function FocusTimer({ signedIn }: { signedIn: boolean }) {
           </div>
         )}
 
-        <div className="relative mx-auto aspect-square w-full max-w-[300px]">
+        <div className="relative mx-auto aspect-square w-full max-w-[240px] sm:max-w-[260px]">
           <svg viewBox="0 0 280 280" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
             <circle cx="140" cy="140" r={R} fill="none" stroke="var(--raise)" strokeWidth="26" />
             <circle cx="140" cy="140" r={R} fill="none" stroke="var(--line)" strokeWidth="30" opacity="0.12" />
@@ -238,7 +239,10 @@ export default function FocusTimer({ signedIn }: { signedIn: boolean }) {
         )}
       </section>
 
-      <TodayFocus signedIn={signedIn} refreshKey={statsKey} visitSessions={visitSessions} />
+      <div className="flex w-full max-w-lg flex-col gap-3 lg:w-72 lg:max-w-72">
+        <TodayFocus signedIn={signedIn} refreshKey={statsKey} visitSessions={visitSessions} />
+        <GemCalendar signedIn={signedIn} />
+      </div>
     </div>
   );
 }
