@@ -1,0 +1,53 @@
+{
+  "character": {
+    "id": "cfa69cc1-e453-4f02-8f1f-2ed73ca79ba9",
+    "name": "Removing the Armour",
+    "prompt": "A full-body medieval fantasy knight character in a highly detailed 2D pixel-art style.  The knight wears heavy, dark blue-grey steel plate armour with a weathered, battle-worn appearance. His helmet is a fully enclosed medieval great helm with a narrow vertical visor and several dark viewing slits. A distinctive deep crimson-red feathered plume sweeps backwards from the top of the helmet.  He has large, rounded steel shoulder pauldrons, layered arm guards, articulated elbow plates, metal gauntlets, a segmented breastplate, and heavy armoured greaves and boots. A thick crimson-red scarf wraps around his neck and rests over his upper chest. Torn, flowing dark-red fabric hangs from his waist and trails behind his legs like a short battle-worn cape.  His armour features subtle scratches, metallic reflections, dark shadows and carefully placed silver-blue pixel highlights. His proportions are slightly compact and stout, with a broad upper body and sturdy legs.  **Art direction:** Classic video-game pixel art, visible individual square pixels, crisp pixel clusters, limited colour palette, strong contrast, carefully defined silhouettes, detailed pixel shading, retro RPG character sprite aesthetic.  **Pose:** Standing upright, facing forward, arms resting naturally at his sides.  **Composition:** Entire character visible from helmet to boots, centred, isolated character, transparent background, no environment, no text, no additional objects.  Maintain consistent pixel sizes throughout the character. Avoid smooth gradients, realistic 3D rendering, vector art, cartoon outlines or painterly textures.",
+    "size": {
+      "width": 48,
+      "height": 48
+    },
+    "directions": 8,
+    "view": "low top-down"
+  },
+  "spritesheet": {
+    "path": "A_full-body_medieval_fan-Removing_the_Armour.png",
+    "cell_size": {
+      "width": 68,
+      "height": 68
+    },
+    "sheet_size": {
+      "width": 612,
+      "height": 136
+    },
+    "columns": 9,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      },
+      {
+        "row": 1,
+        "type": "animation",
+        "frame_count": 9,
+        "animation": "Pushups, he should get down and start doing pushups.",
+        "animation_group_id": "c7a2b91c-8e01-4b5a-8ed0-3a2be590cf77",
+        "direction": "east"
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-11-02T06:00:36.533634+00:00"
+}

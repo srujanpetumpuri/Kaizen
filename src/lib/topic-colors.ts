@@ -1,6 +1,6 @@
-// Sunrise palette, handed out in turn so each new topic gets a distinct colour.
+// Neon Aura palette, handed out in turn so each new topic gets a distinct colour.
 // Pure data, so both server code and client components can import it.
-export const TOPIC_COLORS = ["#c8323b", "#f6c453", "#f4878a", "#7a1d24", "#e8793a", "#3f8f4f"];
+export const TOPIC_COLORS = ["#ff4f6d", "#ffb347", "#ff8fc0", "#a259ff", "#ff7a3d", "#37d6c4"];
 
 export const MAX_TOPIC_NAME = 40;
 

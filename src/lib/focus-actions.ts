@@ -98,7 +98,7 @@ export async function getTodayStats(date: string): Promise<TodayStats> {
     .map((r) => ({
       topicId: r.topicId,
       name: r.name ?? "No topic",
-      color: r.color ?? "#6b4a40",
+      color: r.color ?? "#a78bd4",
       minutes: r.minutes,
       sessions: r.sessions,
     }))
